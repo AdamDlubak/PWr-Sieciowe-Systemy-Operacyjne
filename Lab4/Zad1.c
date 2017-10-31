@@ -12,40 +12,42 @@
 #include <sys/shm.h>
 #include <errno.h>
 #include <sys/sem.h>
+#include "library.h"
 
-#define SHM_SIZE 1024
-
-
+#define SHM_SIZE 1024  /* make it a 1K shared memory segment */
 
 int main(int argc, char * argv[]){ 
-    int wartosc = 0;
+    
     int shmid;
-    char *data;
-    int semId; /* Identyfikator semafora */
-
-
-    union semun {
-        int val;
-        struct semid_ds *buf;
-        unsigned short int* array;
-        struct seminfo *__buf;
-    } ustaw;
-
-struct sembuf operacja;
-
-    key_t key = 5678;
-    /* shmget(klucz, Rozmiar pamięci współdzielonej, podane niżej powodują błąd EEXIST jeśli segment o podanym kluczu już istnieje) */
-    if((shmid = shmget(key, sizeof(int), 0644 | IPC_CREAT)) == -1) {
+    key_t key = 5660;
+    double sum;
+    double *data;
+    double deposit;
+    if(argc == 3){
+        deposit = atof(argv[2]);    }
+    /* shmget(klucz, Rozmiar pamięci współdzielonej, podane niżej flagi powodują błąd EEXIST jeśli segment o podanym kluczu już istnieje) */
+    if((shmid = shmget(key, SHM_SIZE, 0666 | IPC_CREAT | IPC_EXCL)) == -1) {
+        if(errno != EEXIST) {
         /* Segment jeszcze nie istnieje i wysąpił inny błąd, np. brak praw czy brak pamięci na segment */
-        perror("Error shmget()"); exit(0);    
+        perror("Error shmget()"); exit(0); 
+        }
+        else {
+            if((shmid = shmget(key, SHM_SIZE, IPC_CREAT)) == -1){        perror("Error shmget()"); exit(0); }
+            /* Proces  istneieje i uzyskałem do niego klucz */
+
+            printf("Dołączyłem się do pamięci współdzielonej o identyfikatorze: %d\n", shmid);
+        }
+     } else {
+        /* Utworzenie pamięci współdzielonej i ustalenie wartości konta na 0 */
+  
+        sum = 0;
+        printf("Utworzyłem pamięć o identyfikatorze: %d\n", shmid);
+        printf("Wartość konta to: %f\n", sum);
     }
-    /* Proces  istneieje i uzyskałem do niego klucz */
-    printf("Utworzyłem pamięć o identyfikatorze: %d\n", shmid);
-    if((data = shmat(shmid, NULL, SHM_RND)) == (char*) -1){
+    if((data = (double *) shmat(shmid, NULL, 0)) == (double *)-1){
         perror("Error shmat():"); exit(0);
-    }
-
-
+    } 
+/*
     if((key = ftok(".", 'A')) == -1) {
         perror("Error ftok()"); exit(0);
     }
@@ -54,57 +56,39 @@ struct sembuf operacja;
         perror("Error semget()"); exit(0);
     }
 
-
+*/
     /* Inicjowanie semfora jako podniesiony */
-    ustaw.val = 1;
+/*    ustaw.val = 1;
     if(semctl(semId, 0, SETVAL, ustaw) == -1){
         perror("Error semctl()"); exit(0);
     }
 
 
 
-
-    /* Zablokowanie dostępu do pliku - operacja p */
-    operacja.sem_num = 0;
-    operacja.sem_op = -1; /* Zablokuj */
-    operacja.sem_flag = 0; /* operacja blokująca */
-
     if(semop(semId, &operacja, 1) == -1) {
         perror("Error semop()"); exit(0);
     }
-
+*/
     /* Wykonuję jakieś operacje */
-if(argc == 2) {
-    strncpy(data, argv[1], sizeof(int));
-    printf("Writing to segment \"%s\"\n", argv[1]);
-    
-}
-else {
-    printf("segment contains \"%s\"\n", data);
-}
 
-
-
-
-    /* Odblokowanie dostępu */
-    operacja.sem_num = 0;
-    operacja.sem_op = 1; /* Zablokuj */
-    operacja.sem_flag = 0; /* operacja blokująca */
-
-    if(semop(semId, &operacja, 1) == -1) {
-        perror("Error semop()"); exit(0);
-    }  
-
-
-
-    /* Odłączenie od segmentu */
-    if(shmdt(data) == -1) {
-        perror("Error shmdt()"); exit(0);
-    }
-    /* Kasowanie pamięci współdzielonej */
-    shmctl(key, IPC_RMID, NULL);
-    printf("Pamięć współdzielona została zamknięta\n");
-    
+    if(argc == 3 ) {
+        /* strncpy(data, &deposit, sizeof(double)); */
+        printf("Poczatkowa wartosc konta: %f\n", *data);
+        
+        *data += deposit;
+        printf("Deposit value %f\n", deposit);
+        
+         printf("Writing to segment %f\n", *data);
+         
+     }
+     else {
+         printf("segment contains \"%f\"\n", *data);
+     }
+     
+     
+     
+     printf("\n\n%f\n\n", *data);
+     
 
 	return 1;
 } 
