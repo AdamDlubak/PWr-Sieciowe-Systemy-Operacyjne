@@ -24,20 +24,18 @@ int main(int argc, char * argv[]){
     }
 
     key_t key = KEY_VALUE;
-    int shmId, semId;
+    int shmId = 0, semId;
     double deposit;
     struct shData *data;
-    int clients, result = -1;
+    int clients;
 
     if(argc == 3) {
         deposit = atof(argv[2]);    
     }
+    semId = bSemCreate(key, ".", 'A', 1); 
     
-    shmId = createOrGetSM(key, &result);
-    semId = bSemCreate(key, ".", 'A', 1, result); 
-    
-    data = attachSM(shmId, semId, result);
-    
+    data = createOrGetSM(key, &shmId, semId);
+    sleep(3);
    if(argc == 3 ) {
         bSemBlockP(semId);
         makeDeposit(0, deposit, data);
@@ -46,7 +44,7 @@ int main(int argc, char * argv[]){
     else if(argc == 2) {
         checkBalance(data);
     }
-    
+    sleep(0.5);
     clients = disconnectSM(data, semId);
     
 

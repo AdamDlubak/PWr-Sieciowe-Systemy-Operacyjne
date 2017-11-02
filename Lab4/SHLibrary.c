@@ -5,15 +5,22 @@ Create or attach Shared memory using key and result by parameter 1 if
 SH was created or and 2 if was attached to existing SM.
 Function returns Shared Memory Id.
 */
-int createOrGetSM(int key, int* result) {
+struct shData* createOrGetSM(int key, int* shmId, int semId) {
     
-    int shmId;
-
+    struct shData* data;
+    int tmp;
     /* Try creating share memory */
-    if((shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT | IPC_EXCL)) != -1) {
-        printf("Created SM with ID: %d\n", shmId);
-        *result = 1;        
-        return shmId;
+    if((*shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT | IPC_EXCL)) != -1) {
+        printf("Created SM with ID: %d\n", *shmId);   
+
+        data = shmat(*shmId, 0, 0);
+        if(data->clients < 0) {
+            perror("Error shmat()"); exit(0);
+        } 
+        bSemBlockP(semId);
+        data->bankBalance = 0;
+        data->clients = 1;
+        bSemUnblockV(semId);
     } else {
         /* If segment exist and error another than i.e. access denied or not enough memory */
         if(errno != EEXIST) {
@@ -21,43 +28,23 @@ int createOrGetSM(int key, int* result) {
         }
         /* If segment exist and possible to attach */
         else {
-            if((shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT)) == -1) {
+            if((*shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT)) == -1) {
                 perror("Error shmget()"); exit(0); 
             }
-            printf("Attached to exist SM with ID: %d\n", shmId);
-            *result = 2;
-            return shmId;
+            printf("Attached to exist SM with ID: %d\n", *shmId);
+
+            data = shmat(*shmId, 0, 0);
+            if(data->clients < 0) {
+                perror("Error shmat()"); exit(0);
+            } 
+            bSemBlockP(semId);    
+            tmp = data->clients;
+            tmp++;
+            data->clients = tmp;   
+            bSemUnblockV(semId);
+            
         }
-    } 
-}
-
-struct shData* attachSM(int shmId, int semId, int result) {
-    
-    struct shData* data;
-    int tmp;
-
-    data = shmat(shmId, 0, 0);
-    if(data->clients == -1) {
-        perror("Error shmat()"); exit(0);
     }
-    bSemBlockP(semId);
-    /* SM was already created, set basic parameter */
-    if(result == 1){
-        data->bankBalance = 0;
-        data->clients = 1;
-    }
-    /* Attach to exist SM, increment amount of SM user */
-     else if(result == 2) {
-        tmp = data->clients;
-        tmp++;
-        data->clients = tmp;   
-    }
-    else {
-        perror("Result of function createOrGetSM() was incorrect\n");
-        exit(0);
-    }
-    bSemUnblockV(semId);
-    
     return data;
 }
 
@@ -97,14 +84,27 @@ void makeDeposit(int bankAccount, double deposit, struct shData* data){
 
         double dTmp;
 
-        printf("\tDeposit value: %f\n", deposit);    
+        /* printf("\tDeposit value: %f\n", deposit);     */
         printf("\tBank balance before transaction: %f\n\n\t....Transaction....\n\n", data->bankBalance);
 
         dTmp = data->bankBalance;
         dTmp += deposit;
-        sleep(1); /* Simulate of realization transaction  */ 
+        usleep(randomInt(300000, 3000000)); /* Simulate of realization transaction  */ 
         data->bankBalance = dTmp;
 
         printf("\tBank balance after transaction: %f\n", data->bankBalance);
          
+}
+
+int randomInt(int min, int max) {
+    int tmp;
+    if (max>=min)
+        max-= min;
+    else
+    {
+        tmp= min - max;
+        min= max;
+        max= tmp;
+    }
+    return max ? (rand() % max + min) : min;
 }

@@ -17,16 +17,14 @@
 #define _SHLIBRARY_H
 
 #define SHM_SIZE 1024  /* 1KB shared memory segment */
-#define KEY_VALUE 5689
+#define KEY_VALUE 5190
 
 struct shData {
     double bankBalance;
     int clients;
 };
 
-int createOrGetSM(int, int*);
-
-struct shData* attachSM(int, int, int);
+struct shData* createOrGetSM(int, int*, int);
 
 int disconnectSM(struct shData*, int);
 
@@ -35,5 +33,7 @@ void removeSM(int, int);
 void checkBalance(struct shData*);
 
 void makeDeposit(int, double, struct shData*);
+
+int randomInt(int, int);
 
 #endif

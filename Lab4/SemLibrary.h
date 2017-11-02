@@ -12,6 +12,7 @@
 #include <sys/shm.h>
 #include <errno.h>
 #include <sys/sem.h>
+#include <time.h>
 
 #ifndef _SEMLIBRARY_H
 #define _SEMLIBRARY_H
@@ -35,7 +36,7 @@
     Return: Semafor Id and init as S = 1
     If error return -1
     Parametrs: key, path, existing file name, semafor amount */
-int bSemCreate(key_t, char*, int, int, int);
+int bSemCreate(key_t, char*, int, int);
 
 /*  V operation
     Return 0 (success), -1 (error) */
@@ -54,5 +55,6 @@ int bSemWaitZ(int);
 
 /* Remove semafor */
 int bSemDelete(int, int);
+
 
 #endif
