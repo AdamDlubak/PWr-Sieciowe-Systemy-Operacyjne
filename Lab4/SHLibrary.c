@@ -57,7 +57,6 @@ struct shData* attachSM(int shmId, int semId, int result) {
         exit(0);
     }
     bSemUnblockV(semId);
-    printf("Clients after add: %d\n", data->clients);
     
     return data;
 }
@@ -66,7 +65,7 @@ int disconnectSM(struct shData* data, int semId){
     
     int clients;
 
-    bSemBlockP(semId);    
+    bSemBlockP(semId);   
     clients = data->clients;
     clients--;    
     data->clients = clients;    
@@ -78,7 +77,6 @@ int disconnectSM(struct shData* data, int semId){
     }   
 
     printf("Shared Memory disconnected!\n");   
-    printf("Clients after disconnect: %d\n", clients);
     return clients;
 }
 

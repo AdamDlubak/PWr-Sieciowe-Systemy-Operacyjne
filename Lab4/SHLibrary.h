@@ -17,7 +17,7 @@
 #define _SHLIBRARY_H
 
 #define SHM_SIZE 1024  /* 1KB shared memory segment */
-#define KEY_VALUE 5679
+#define KEY_VALUE 5689
 
 struct shData {
     double bankBalance;

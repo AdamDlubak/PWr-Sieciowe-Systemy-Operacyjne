@@ -35,6 +35,7 @@ int main(int argc, char * argv[]){
     
     shmId = createOrGetSM(key, &result);
     semId = bSemCreate(key, ".", 'A', 1, result); 
+    
     data = attachSM(shmId, semId, result);
     
    if(argc == 3 ) {
@@ -46,11 +47,11 @@ int main(int argc, char * argv[]){
         checkBalance(data);
     }
     
-    bSemBlockP(semId);
     clients = disconnectSM(data, semId);
-    bSemUnblockV(semId);
     
-    if(clients == 0){
+
+    sleep(5);
+    if(clients == 0) {
         removeSM(clients, shmId);        
         bSemDelete(semId, 0);
         printf("Semafor removed!\n");
