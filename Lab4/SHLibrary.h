@@ -17,7 +17,7 @@
 #define _SHLIBRARY_H
 
 #define SHM_SIZE 1024  /* 1KB shared memory segment */
-#define KEY_VALUE 5660 
+#define KEY_VALUE 5679
 
 struct shData {
     double bankBalance;
@@ -26,9 +26,9 @@ struct shData {
 
 int createOrGetSM(int, int*);
 
-struct shData* attachSM(int shmId, int result);
+struct shData* attachSM(int, int, int);
 
-int disconnectSM(struct shData*);
+int disconnectSM(struct shData*, int);
 
 void removeSM(int, int);  
 

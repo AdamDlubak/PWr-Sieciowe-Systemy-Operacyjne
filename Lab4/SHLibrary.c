@@ -1,5 +1,5 @@
 #include "SHLibrary.h"
-
+#include "SemLibrary.h"
 /*
 Create or attach Shared memory using key and result by parameter 1 if 
 SH was created or and 2 if was attached to existing SM.
@@ -11,8 +11,8 @@ int createOrGetSM(int key, int* result) {
 
     /* Try creating share memory */
     if((shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT | IPC_EXCL)) != -1) {
-        *result = 1;
         printf("Created SM with ID: %d\n", shmId);
+        *result = 1;        
         return shmId;
     } else {
         /* If segment exist and error another than i.e. access denied or not enough memory */
@@ -31,7 +31,7 @@ int createOrGetSM(int key, int* result) {
     } 
 }
 
-struct shData* attachSM(int shmId, int result) {
+struct shData* attachSM(int shmId, int semId, int result) {
     
     struct shData* data;
     int tmp;
@@ -40,7 +40,7 @@ struct shData* attachSM(int shmId, int result) {
     if(data->clients == -1) {
         perror("Error shmat()"); exit(0);
     }
-
+    bSemBlockP(semId);
     /* SM was already created, set basic parameter */
     if(result == 1){
         data->bankBalance = 0;
@@ -56,31 +56,34 @@ struct shData* attachSM(int shmId, int result) {
         perror("Result of function createOrGetSM() was incorrect\n");
         exit(0);
     }
-    printf("Bank balance: %f\n", data->bankBalance);
-    printf("Clients: %d\n", data->clients);
+    bSemUnblockV(semId);
+    printf("Clients after add: %d\n", data->clients);
+    
     return data;
 }
 
-int disconnectSM(struct shData* data){
+int disconnectSM(struct shData* data, int semId){
     
     int clients;
 
-    printf("Start disconnecting...\n");    
+    bSemBlockP(semId);    
     clients = data->clients;
-    clients--;
+    clients--;    
     data->clients = clients;    
+    bSemUnblockV(semId);
+    
     if (shmdt(data) == -1) {
         perror("Error shmdt()");
         exit(1);
     }   
 
     printf("Shared Memory disconnected!\n");   
+    printf("Clients after disconnect: %d\n", clients);
     return clients;
 }
 
 void removeSM(int clients, int shmId) { 
     if(clients == 0){
-        printf("Start removing memory...\n"); 
         if(shmctl(shmId, IPC_RMID, 0) == -1) {
             perror("Error shmctl()"); exit(0);
         }
@@ -97,11 +100,11 @@ void makeDeposit(int bankAccount, double deposit, struct shData* data){
         double dTmp;
 
         printf("\tDeposit value: %f\n", deposit);    
-        printf("\tBank balance before transaction: %f\n\n....Transaction....\n\n", data->bankBalance);
+        printf("\tBank balance before transaction: %f\n\n\t....Transaction....\n\n", data->bankBalance);
 
         dTmp = data->bankBalance;
         dTmp += deposit;
-        sleep(5); /* Simulate of realization transaction  */ 
+        sleep(1); /* Simulate of realization transaction  */ 
         data->bankBalance = dTmp;
 
         printf("\tBank balance after transaction: %f\n", data->bankBalance);

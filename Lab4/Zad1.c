@@ -12,7 +12,7 @@
 #include <sys/shm.h>
 #include <errno.h>
 #include <sys/sem.h>
-#include "library.h"
+#include "SemLibrary.h"
 #include "SHLibrary.h"
 
 
@@ -24,7 +24,7 @@ int main(int argc, char * argv[]){
     }
 
     key_t key = KEY_VALUE;
-    int shmId;
+    int shmId, semId;
     double deposit;
     struct shData *data;
     int clients, result = -1;
@@ -32,46 +32,29 @@ int main(int argc, char * argv[]){
     if(argc == 3) {
         deposit = atof(argv[2]);    
     }
-
+    
     shmId = createOrGetSM(key, &result);
-    data = attachSM(shmId, result);
-
-
-
-
-    if(argc == 3 ) {
+    semId = bSemCreate(key, ".", 'A', 1, result); 
+    data = attachSM(shmId, semId, result);
+    
+   if(argc == 3 ) {
+        bSemBlockP(semId);
         makeDeposit(0, deposit, data);
+        bSemUnblockV(semId);
     }
     else if(argc == 2) {
         checkBalance(data);
     }
-
-    clients = disconnectSM(data);
-    removeSM(clients, shmId);    
+    
+    bSemBlockP(semId);
+    clients = disconnectSM(data, semId);
+    bSemUnblockV(semId);
+    
+    if(clients == 0){
+        removeSM(clients, shmId);        
+        bSemDelete(semId, 0);
+        printf("Semafor removed!\n");
+    }  
     
     return 1;
 }   
-/*
-    if((key = ftok(".", 'A')) == -1) {
-        perror("Error ftok()"); exit(0);
-    }
-
-    if((semId = semget(key, 1, IPC_CREAT | IPC_EXCL | 0600)) == -1) {
-        perror("Error semget()"); exit(0);
-    }
-
-*/
-    /* Inicjowanie semfora jako podniesiony */
-/*    ustaw.val = 1;
-    if(semctl(semId, 0, SETVAL, ustaw) == -1){
-        perror("Error semctl()"); exit(0);
-    }
-
-
-
-    if(semop(semId, &operacja, 1) == -1) {
-        perror("Error semop()"); exit(0);
-    }
-*/
-    /* Wykonuję jakieś operacje */
-

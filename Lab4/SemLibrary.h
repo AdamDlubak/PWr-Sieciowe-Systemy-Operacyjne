@@ -13,8 +13,8 @@
 #include <errno.h>
 #include <sys/sem.h>
 
-#ifndef _LIBRARY_H
-#define _LIBRARY_H
+#ifndef _SEMLIBRARY_H
+#define _SEMLIBRARY_H
 
 
 
@@ -35,7 +35,7 @@
     Return: Semafor Id and init as S = 1
     If error return -1
     Parametrs: key, path, existing file name, semafor amount */
-int bSemCreate(key_t, char*, int, int);
+int bSemCreate(key_t, char*, int, int, int);
 
 /*  V operation
     Return 0 (success), -1 (error) */
@@ -43,7 +43,8 @@ int bSemV(int);
 
 /*  P operation
     Return 0 (success), -1 (error) */
-int bSemP(int);
+void bSemBlockP(int);
+void bSemUnblockV(int);
 
 /*  Read process amount waiting on P */
 int bSemWaitP(int);
