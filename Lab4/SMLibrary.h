@@ -17,7 +17,7 @@
 #define _SHLIBRARY_H
 
 #define SHM_SIZE 1024  /* 1KB shared memory segment */
-#define KEY_VALUE 5162 /* Key value for Shared memory and semaphore */
+#define KEY_VALUE 5142 /* Key value for Shared memory and semaphore */
 #define bankAccounts 3 /* Amount of bank accounts */
 
 struct shData {

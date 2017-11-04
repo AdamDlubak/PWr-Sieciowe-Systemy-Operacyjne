@@ -6,7 +6,7 @@
 
 int main(int argc, char * argv[]) { 
     int i, p, clients, status;
-    if(argc == 1) {
+    if(argc < 2) {
         printf("Incorrect parameters quantity!\nProgram will close...\n");
         exit(0);
     }
@@ -18,13 +18,20 @@ int main(int argc, char * argv[]) {
                 perror("Error fork()"); exit(0);
                 break;
             case 0: 
-                if(i%3 == 0){
-                    execl("./Zad1", "Zad1", "1", "100", NULL);                
+                if(i%4 == 0) {
+                    
+                    execl("./Zad1", "Zad1", "1", "100", "5", NULL);                
                 }
-                else if(i%3 == 1) {
-                    execl("./Zad1", "Zad1", "2", "150", NULL);                
+                else if(i%4 == 1) {
+                    execl("./Zad1", "Zad1", "2", "150", "12", NULL);                
+                } else if(i%4 == 2) {
+                    execl("./Zad1", "Zad1", "1", "2", "25", "2", NULL);                                
                 } else {
-                    execl("./Zad1", "Zad1", "1", "2", "25", NULL);                                
+                    if(i%2 == 0) {
+                        execl("./Zad1", "Zad1", "1", "1", NULL);                                
+                    } else {
+                        execl("./Zad1", "Zad1", "2", "1", NULL);                                
+                    }
                 }
                 exit(0); 
                 break;        

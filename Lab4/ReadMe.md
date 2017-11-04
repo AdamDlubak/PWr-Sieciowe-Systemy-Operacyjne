@@ -46,31 +46,31 @@ Kolejne wykonywane zadania:
 
 2. W zależności od przekazanych parametrów przypisuje je odpowiednim zmiennym.
 
-   - Przekazany **1 argument**:
-
-     Odczytanie stanu konta wskazanego przez argument, uruchomienie programu Zad1 poprzez komendę np.
-
-     ```bash
-     ./Zad1 0
-     ```
-
-     Wymusza działanie programu na odczytanie wartości konta nr 0 (konta numerowane od 0 do liczby określonej jako `#define bankAccounts ` w pliku `SMLibrary.h`).
-
-
    - Przekazane **2 argumenty**:
 
-     Zwiększenie lub zmniejszenie o kwotę przekazaną jako drugi argument (wpłata / wypłata) stanu konta o numerze przekazanym jako pierwszy argument , uruchomienie programu Zad1 poprzez komendę np.
+     Odczytanie stanu konta (x razy - gdzie x sterowany poprzez argument drugi) wskazanego przez argument pierwszy, uruchomienie programu Zad1 poprzez komendę np.
 
      ```bash
-     ./Zad1 1 350
+     ./Zad1 0 1
      ```
+
+     Wymusza działanie programu na jednokrotne odczytanie wartości konta nr 0 (konta numerowane od 0 do liczby określonej jako `#define bankAccounts ` w pliku `SMLibrary.h`).
+
 
    - Przekazane **3 argumenty**:
 
-     Przelanie kwoty (3 argument) z konta o numerze pierwszego argumentu, na konto o numerze drugiego argumentu. 
+     Zwiększenie lub zmniejszenie o kwotę przekazaną jako drugi argument (wpłata / wypłata) stanu konta o numerze przekazanym jako pierwszy argument tyle razy ile przekezano w ostatnim argumencie , uruchomienie programu Zad1 poprzez komendę np.
 
      ```bash
-     ./Zad1 1 2 350
+     ./Zad1 1 350 3
+     ```
+
+   - Przekazane **4 argumenty**:
+
+     Przelanie kwoty (3 argument) z konta o numerze pierwszego argumentu, na konto o numerze drugiego argumentu tyle razy ile wskazuje 4 argument. 
+
+     ```bash
+     ./Zad1 1 2 350 5
      ```
 
 3. Utworzenie i zainicjalizowanie grupy semaforów przez pierwszy proces lub dołączenie do utworzonych semaforów przez kolejne procesy
