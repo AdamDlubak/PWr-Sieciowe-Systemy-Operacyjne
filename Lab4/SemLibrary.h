@@ -44,8 +44,8 @@ int bSemV(int);
 
 /*  P operation
     Return 0 (success), -1 (error) */
-void bSemBlockP(int);
-void bSemUnblockV(int);
+void bSemBlockP(int, int);
+void bSemUnblockV(int, int);
 
 /*  Read process amount waiting on P */
 int bSemWaitP(int);

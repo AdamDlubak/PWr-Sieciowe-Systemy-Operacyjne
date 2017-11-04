@@ -8,7 +8,7 @@ Function returns Shared Memory Id.
 struct shData* createOrGetSM(int key, int* shmId, int semId) {
     
     struct shData* data;
-    int tmp;
+    int tmp, i;
     /* Try creating share memory */
     if((*shmId = shmget(key, sizeof(struct shData), 0666 | IPC_CREAT | IPC_EXCL)) != -1) {
         printf("Created SM with ID: %d\n", *shmId);   
@@ -17,10 +17,16 @@ struct shData* createOrGetSM(int key, int* shmId, int semId) {
         if(data->clients < 0) {
             perror("Error shmat()"); exit(0);
         } 
-        bSemBlockP(semId);
-        data->bankBalance = 0;
+        for(i = 0; i < bankAccounts; i++){
+            bSemBlockP(semId, i);            
+        }
+        for(i = 0; i < bankAccounts; i++) {
+            data->bankBalance[i] = 0;            
+        }
         data->clients = 1;
-        bSemUnblockV(semId);
+        for(i = 0; i < bankAccounts; i++){
+            bSemUnblockV(semId, i);
+        }
     } else {
         /* If segment exist and error another than i.e. access denied or not enough memory */
         if(errno != EEXIST) {
@@ -37,11 +43,15 @@ struct shData* createOrGetSM(int key, int* shmId, int semId) {
             if(data->clients < 0) {
                 perror("Error shmat()"); exit(0);
             } 
-            bSemBlockP(semId);    
+            for(i = 0; i < bankAccounts; i++){
+                bSemBlockP(semId, i);            
+            }   
             tmp = data->clients;
             tmp++;
             data->clients = tmp;   
-            bSemUnblockV(semId);
+            for(i = 0; i < bankAccounts; i++){
+                bSemUnblockV(semId, i);
+            }
             
         }
     }
@@ -50,13 +60,17 @@ struct shData* createOrGetSM(int key, int* shmId, int semId) {
 
 int disconnectSM(struct shData* data, int semId){
     
-    int clients;
+    int clients, i;
 
-    bSemBlockP(semId);   
+    for(i = 0; i < bankAccounts; i++){
+        bSemBlockP(semId, i);            
+    }  
     clients = data->clients;
     clients--;    
     data->clients = clients;    
-    bSemUnblockV(semId);
+    for(i = 0; i < bankAccounts; i++){
+        bSemUnblockV(semId, i);
+    }
     
     if (shmdt(data) == -1) {
         perror("Error shmdt()");
@@ -76,8 +90,8 @@ void removeSM(int clients, int shmId) {
     }
 }
 
-void checkBalance(struct shData* data){
-    printf("\tCurrent bank balance %f\n", data->bankBalance);
+void checkBalance(struct shData* data, int bankAccount){
+    printf("\tCurrent bank balance (account %d) %f\n", bankAccount, data->bankBalance[bankAccount]);
 }
 
 void makeDeposit(int bankAccount, double deposit, struct shData* data){
@@ -85,14 +99,14 @@ void makeDeposit(int bankAccount, double deposit, struct shData* data){
         double dTmp;
 
         /* printf("\tDeposit value: %f\n", deposit);     */
-        printf("\tBank balance before transaction: %f\n\n\t....Transaction....\n\n", data->bankBalance);
+        printf("\tBank balance (account %d) before transaction: %f\n\n\t....Transaction....\n\n", bankAccount, data->bankBalance[bankAccount]);
 
-        dTmp = data->bankBalance;
+        dTmp = data->bankBalance[bankAccount];
         dTmp += deposit;
         usleep(randomInt(300000, 3000000)); /* Simulate of realization transaction  */ 
-        data->bankBalance = dTmp;
+        data->bankBalance[bankAccount] = dTmp;
 
-        printf("\tBank balance after transaction: %f\n", data->bankBalance);
+        printf("\tBank balance (account %d) after transaction: %f\n", bankAccount, data->bankBalance[bankAccount]);
          
 }
 

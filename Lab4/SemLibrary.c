@@ -31,9 +31,9 @@ int bSemCreate(key_t key, char* path, int k, int semAmount) {
             return semId;
 }
 
-void bSemBlockP(int semafor) {
+void bSemBlockP(int semafor, int account) {
     struct sembuf operation;
-    operation.sem_num = 0;
+    operation.sem_num = account;
     operation.sem_op = -1;
     operation.sem_flg = 0;
     
@@ -44,10 +44,10 @@ void bSemBlockP(int semafor) {
     }
     
 }
-void bSemUnblockV(int semafor) {
+void bSemUnblockV(int semafor, int account) {
     struct sembuf operation;
     
-    operation.sem_num = 0;
+    operation.sem_num = account;
     operation.sem_op = 1;
     operation.sem_flg = 0;
     

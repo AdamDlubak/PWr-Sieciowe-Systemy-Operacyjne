@@ -17,10 +17,10 @@
 #define _SHLIBRARY_H
 
 #define SHM_SIZE 1024  /* 1KB shared memory segment */
-#define KEY_VALUE 5190
-
+#define KEY_VALUE 5162
+#define bankAccounts 3
 struct shData {
-    double bankBalance;
+    double bankBalance[bankAccounts];
     int clients;
 };
 
@@ -30,7 +30,7 @@ int disconnectSM(struct shData*, int);
 
 void removeSM(int, int);  
 
-void checkBalance(struct shData*);
+void checkBalance(struct shData*, int);
 
 void makeDeposit(int, double, struct shData*);
 

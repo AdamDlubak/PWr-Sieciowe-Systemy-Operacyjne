@@ -21,7 +21,14 @@ int main(int argc, char * argv[]) {
                 break;
     
             case 0: 
-                execl("./Zad1", "Zad1", "g", "2", NULL);
+            if(i%3 == 0){
+                execl("./Zad1", "Zad1", "1", "100", NULL);                
+            }
+            else if(i%3 == 1) {
+                execl("./Zad1", "Zad1", "2", "150", NULL);                
+            } else {
+                execl("./Zad1", "Zad1", "1", "2", "25", NULL);                                
+            }
                 exit(0); 
                 break;
     
