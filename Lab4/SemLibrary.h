@@ -17,8 +17,6 @@
 #ifndef _SEMLIBRARY_H
 #define _SEMLIBRARY_H
 
-
-
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
     /* Defined in sys/sem.h */
 #else
@@ -30,31 +28,19 @@
     };
 #endif
 
-
-/*  Create binary semafor with file owner permission only.
+/*  Create binary semafor with file full permission.
     If semafor exist, get access.
     Return: Semafor Id and init as S = 1
-    If error return -1
-    Parametrs: key, path, existing file name, semafor amount */
+    If error return -1 */
 int bSemCreate(key_t, char*, int, int);
 
-/*  V operation
-    Return 0 (success), -1 (error) */
-int bSemV(int);
-
-/*  P operation
-    Return 0 (success), -1 (error) */
+/*  Block operation */
 void bSemBlockP(int, int);
+
+/*  Unblock operation */
 void bSemUnblockV(int, int);
-
-/*  Read process amount waiting on P */
-int bSemWaitP(int);
-
-/*  Read process amount waiting on Z */
-int bSemWaitZ(int);
 
 /* Remove semafor */
 int bSemDelete(int, int);
-
 
 #endif

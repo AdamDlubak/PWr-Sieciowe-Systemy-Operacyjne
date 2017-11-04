@@ -13,22 +13,21 @@
 #include <errno.h>
 #include <sys/sem.h>
 #include "SemLibrary.h"
-#include "SHLibrary.h"
-
+#include "SMLibrary.h"
 
 int main(int argc, char * argv[]){ 
-    
-    if(argc == 1 || argc > 4) {
-        printf("Incorrect parameters quantity!\nProgram will close...\n");
-        exit(0);
-    }
 
     key_t key = KEY_VALUE;
     int shmId = 0, semId;
     double deposit;
     struct shData *data;
     int clients, account, account2;
-    if(argc == 2){
+
+    if(argc == 1 || argc > 4) {
+        printf("Incorrect parameters quantity!\nProgram will close...\n");
+        exit(0);
+    }
+    else if(argc == 2){
         account = atof(argv[1]);    
     }
     else if(argc == 3) {
@@ -40,9 +39,11 @@ int main(int argc, char * argv[]){
         account2 = atof(argv[2]);    
         deposit = atof(argv[3]);    
     }
+
     semId = bSemCreate(key, "/tmp/", 'B', bankAccounts); 
-    
     data = createOrGetSM(key, &shmId, semId);
+
+    /* Wait some time for creation all structures */
     sleep(3);
    
     if(argc == 2) {
@@ -61,16 +62,16 @@ int main(int argc, char * argv[]){
         bSemUnblockV(semId, account2);    
         bSemUnblockV(semId, account);    
     }
+
+    /* Wait some time before disconnect Shared Memory */
     sleep(0.5);
     clients = disconnectSM(data, semId);
     
-
+    /* Wait some time before checking if all clients are disconnected and can remove shared memory and semaphores */
     sleep(5);
     if(clients == 0) {
         removeSM(clients, shmId);        
         bSemDelete(semId, 0);
-        printf("Semafor removed!\n");
     }  
-    
     return 1;
 }   
