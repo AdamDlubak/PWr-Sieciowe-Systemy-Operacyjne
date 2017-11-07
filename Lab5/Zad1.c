@@ -39,13 +39,13 @@ void *makeTransfer(void *transParam) {
         int result = pthread_mutex_lock(&mutex[(*param).accountFrom]);
 		if (result != 0) { perror("Error pthread_mutex_lock\n"); exit(0); } 
 		while (semAccount[(*param).accountFrom] <= 0 || (bankBalance[(*param).accountFrom] < (*param).value)) {
-			if(bankBalance[(*param).accountFrom] >= (*param).value) { /* Jeżeli są środki na koncie, lecz konta zajęte, czekaj */
+			if(bankBalance[(*param).accountFrom] >= (*param).value) { 
 					pthread_cond_wait(&condWithDrawal[(*param).accountFrom], &mutex[(*param).accountFrom]);
 					continue;
 			} else {
-				if(condWithDrawalPriorBusy[(*param).accountFrom]) { /* Jeśli kolejka priorytetowa zajęta, to w zwykłej */
+				if(condWithDrawalPriorBusy[(*param).accountFrom]) { 
 					pthread_cond_wait(&condWithDrawal[(*param).accountFrom], &mutex[(*param).accountFrom]);
-				} else {  /* Jeśli kolejka priorytetowa wolna, to w niej */	
+				} else { 
 					condWithDrawalPriorBusy[(*param).accountFrom]++;
 					printf("Thread: %d\tAccount: %d\tPriority cond was sent to sleep!\n", (*param).threadNumber, (*param).accountFrom);
 					
@@ -68,6 +68,8 @@ void *makeTransfer(void *transParam) {
 		result = pthread_mutex_unlock(&mutex[(*param).accountTo]);
 			if (result != 0) { perror("Error pthread_mutex_unlock\n"); exit(0); } 
 
+
+			/* Critical Section */
 			int tmpFrom = bankBalance[(*param).accountFrom];
 			int tmpTo = bankBalance[(*param).accountTo];
 			tmpFrom -= (*param).value;
