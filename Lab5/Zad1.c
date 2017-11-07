@@ -2,10 +2,13 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
+#include <time.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include <sys/sem.h>
 #include <pthread.h>
+
+#define threadsAmt 10 /* General number of threads */
 
 	int bankBalance[] = { 0, 0 };
 	int semAccount[2] = { 1, 1 };
@@ -13,8 +16,9 @@
 	pthread_cond_t condDeposit[2] = PTHREAD_COND_INITIALIZER;
 	pthread_cond_t condWithDrawal[2] = PTHREAD_COND_INITIALIZER;
 	pthread_cond_t condWithDrawalPrior[2] = PTHREAD_COND_INITIALIZER;
-	int condWithDrawalPriorBusy[2] = { 0, 0 };
-	int awakeDeposit[2] = { 0, 0 }; /* if awakeDeposit = 1 - before awake condDeposit, if 1 - before awake condWithDrawal */
+	int condWithDrawalPriorBusy[2] = { 0, 0 }; /* if condWithDrawalPriorBusy = 1 - queue is busy, if 0 - queue is empty */
+	int awakeDeposit[2] = { 0, 0 }; /* if awakeDeposit = 1 - before awake condDeposit, if 0 - before awake condWithDrawal */
+	
 	struct depositParameters {
 		int account;
 		int value;
@@ -26,16 +30,7 @@
 		int value;
 		int threadNumber;
 	};
-int randomInt(int min, int max) {
-    int tmp;
-    if (max>=min) max-= min;
-    else {
-        tmp= min - max;
-        min= max;
-        max= tmp;
-    }
-    return max ? (rand() % max + min) : min;
-}
+
 void *makeTransfer(void *transParam) {
 
 		struct transferParameters *param = (struct transferParameters*)transParam;
@@ -73,9 +68,6 @@ void *makeTransfer(void *transParam) {
 		result = pthread_mutex_unlock(&mutex[(*param).accountTo]);
 			if (result != 0) { perror("Error pthread_mutex_unlock\n"); exit(0); } 
 
-
-
-/* .................... Działania .................... */
 			int tmpFrom = bankBalance[(*param).accountFrom];
 			int tmpTo = bankBalance[(*param).accountTo];
 			tmpFrom -= (*param).value;
@@ -220,18 +212,18 @@ int main(int argc, char * argv[]){
 	/* Running parameters */
 	struct depositParameters *depParam;
 	struct transferParameters *transParam;
-    int i, result, threadsAmt = 0;
-	int threadsArray[4] = { 1, 2, 1, 6}; 										/* Number of particular operations */
-	int values[10] = { 100, 50, -50, 150, -50, -50, 1000, -50, 10 , 50};		/* Values of deposits */	
-	for(i = 0; i < 4; i++) { threadsAmt += threadsArray[i]; }
-    pthread_t bankThread[threadsAmt]; 											/* General number of threads */
+    int i, result;
+	
+	int values[threadsAmt] = { 100, 50, -50, 150, -50, -50, 1000, -50, 10 , 50 };	/* Values of deposits or transfers (as abs()) */	
+	int oneOfIsTransfer = 5;														/* Every fifth operation is a transfer */										
+    pthread_t bankThread[threadsAmt]; 												
+	srand(time(NULL));
 
 	for(i = 0; i < threadsAmt; i++) {
-		sleep(1);
-		if(i%2 == 0) {
+		if(i % oneOfIsTransfer != 0) {
 			/* Preparing data */
 			depParam = malloc(sizeof(struct depositParameters));
-			(*depParam).account = randomInt(0, 2);
+			(*depParam).account = rand() % 2;
 			(*depParam).value = values[i];
 			(*depParam).threadNumber = i;
 
@@ -243,8 +235,8 @@ int main(int argc, char * argv[]){
 		}
 		else {
 			transParam = malloc(sizeof(struct transferParameters));
-			(*transParam).accountFrom = 1;
-			(*transParam).accountTo = 0;
+			(*transParam).accountFrom = rand() % 2;
+			if((*transParam).accountFrom) (*transParam).accountTo = 0; else (*transParam).accountTo = 1;
 			(*transParam).value = abs(values[i]);
 			(*transParam).threadNumber = i;	
 
@@ -254,18 +246,12 @@ int main(int argc, char * argv[]){
 				perror("Error pthread_create() - Could not create thread!\n");
 			}
 		}
-
-
-
 	}
 
 	/* Joining threads */
 	for(i = 0; i < threadsAmt; i++) {
 		result = pthread_join(bankThread[i], NULL);
-	
-		if(result != 0) {
-			perror("Error pthread_join() - Could not join thread!\n");
-		}
+		if(result != 0) { perror("Error pthread_join() - Could not join thread!\n"); }
 	}
 
     return 1;
