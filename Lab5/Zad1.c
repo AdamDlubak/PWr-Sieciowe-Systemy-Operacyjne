@@ -11,6 +11,7 @@
 	int semAccount[2] = { 1, 1 };
 	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_cond_t cond   = PTHREAD_COND_INITIALIZER;
+	pthread_cond_t condSaldo   = PTHREAD_COND_INITIALIZER;
 
 	struct depositParameters {
 		int account;
@@ -35,9 +36,15 @@ void *makeDeposit(void *depParam) {
         int result = pthread_mutex_lock(&mutex);
         	if (result != 0) { perror("Error pthread_mutex_lock\n"); exit(0); } 
 
-		while (semAccount[(*param).account] <= 0) {
-			pthread_cond_wait(&cond, &mutex);
+		while (semAccount[(*param).account] <= 0 || (bankBalance[(*param).account] - (*param).value < 0)) {
+			if(semAccount[(*param).account] <= 0) {
+				pthread_cond_wait(&cond, &mutex);
+				continue;
+			} else if(bankBalance[(*param).account] - (*param).value < 0) {
+				pthread_cond_wait(&condSaldo, &mutex);	
+			}	
 		}
+		
 		semAccount[(*param).account]--;
 
 		result = pthread_mutex_unlock(&mutex);
