@@ -1,19 +1,11 @@
- #include <stdio.h> 
+  #include <stdio.h> 
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <errno.h>
 #include <sys/sem.h>
 #include <pthread.h>
-
 
 	int bankBalance[] = { 0, 0 };
 	int semAccount[2] = { 1, 1 };
@@ -21,22 +13,21 @@
 	pthread_cond_t cond   = PTHREAD_COND_INITIALIZER;
 
 void *makeDeposit(void *deposit) {
-        int result2 = pthread_mutex_lock(&mutex);
-        if (result2 != 0) {
-            fprintf(stderr, "Error occured during locking the mutex.\n");
-            exit (-1);
-        } 
+
+		/* Entering to Critical Section */
+        int result = pthread_mutex_lock(&mutex);
+        	if (result != 0) { perror("Error pthread_mutex_lock\n"); exit(0); } 
+
 		while (semAccount[0] <= 0) {
 			pthread_cond_wait(&cond, &mutex);
 		}
 		semAccount[0]--;
-		result2 = pthread_mutex_unlock(&mutex);
-        if (result2 != 0) {
-            fprintf(stderr, "Error occured during unlocking the mutex.\n");
-            exit (-1);
-        }
 
+		result = pthread_mutex_unlock(&mutex);
+        	if (result != 0) { perror("Error pthread_mutex_unlock\n"); exit(0); } 
 
+		
+		/* Critical Section operation */
 		int dep = *((int *)deposit);
 		int tmp = bankBalance[0];
 		tmp += dep;
@@ -45,32 +36,20 @@ void *makeDeposit(void *deposit) {
 		printf("Wynik mojej operacji %d\n", bankBalance[0]);
 
 
-
-
-        result2 = pthread_mutex_lock(&mutex);
-        if (result2 != 0) {
-            fprintf(stderr, "Error occured during locking the mutex.\n");
-            exit (-1);
-        } 
+		/* Escaping from Critical Section */
+        result = pthread_mutex_lock(&mutex);
+        	if (result != 0) { perror("Error pthread_mutex_lock\n"); exit(0); } 
 		
 		semAccount[0]++;
-
 		pthread_cond_signal(&cond);
-		result2 = pthread_mutex_unlock(&mutex);
-        if (result2 != 0) {
-            fprintf(stderr, "Error occured during unlocking the mutex.\n");
-            exit (-1);
-        }
-
-
-
-
-	
-        
-			int *result = malloc(sizeof(int));
-			*result = 1;
-			return result;
-
+		
+		result = pthread_mutex_unlock(&mutex);
+        	if (result != 0) { perror("Error pthread_mutex_unlock\n"); exit(0); } 
+      
+		/* Return result of function */
+		int *resultOfFunction = malloc(sizeof(int));
+		*resultOfFunction = 1;
+		return resultOfFunction;
 }
 
 /* 
