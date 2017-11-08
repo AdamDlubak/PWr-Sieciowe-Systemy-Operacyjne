@@ -16,7 +16,7 @@ Zad3: Zad3.c
 Zad4: Zad4.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-Lab1.zip : *.c Makefile ReadMe
+Lab1.zip : *.c Makefile ReadMe.md
 	zip $@ $^
 
 clean:

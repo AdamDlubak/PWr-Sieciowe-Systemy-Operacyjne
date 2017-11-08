@@ -1,6 +1,6 @@
 # Laboratorium 1
 
-Stworzone w języku c z użyciem semaforów i muteksów.
+Stworzone w języku c z użyciem wielu procesów -fork() oraz strumieni przesyłania danych pipe()
 
 #### Laboratorium nr 1 - 10.10.2017r.
 
