@@ -1,6 +1,6 @@
 # Laboratorium 2
 
-Stworzone w języku c z użyciem semaforów i muteksów.
+Stworzone w języku c z użyciem łącz nienazwanych - strumieni pipe.
 
 #### Laboratorium nr 2 - 17.10.2017r.
 
