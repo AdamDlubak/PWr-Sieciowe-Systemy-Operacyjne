@@ -1,4 +1,4 @@
-# Symulacja systemu bankowego
+# Symulacja obsługi serwera plików FTP
 
 Stworzone w języku c z użyciem połączenia TCP i socketów.
 

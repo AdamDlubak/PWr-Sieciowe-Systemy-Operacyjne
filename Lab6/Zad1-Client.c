@@ -9,14 +9,17 @@
 #include <sys/wait.h>
 #include <strings.h>
 #include <string.h>
-int main(int argc, char * argv[]){ 
-#define h_addr h_addr_list[0] /* for backward compatibility */
-int sockfd, portNumber, n;
 
+#define h_addr h_addr_list[0] /* for backward compatibility */
+
+
+int main(int argc, char * argv[]){ 
+
+	int sockfd, portNumber, n;
     struct sockaddr_in serverAddress;
     struct hostent *server;
     char buffer[256];
-
+    char x;
     if (argc < 3) { perror("Client error: Wrong parameters amount - needed 2 ( hostname port ) \n"); exit(0); }
 
 	server = gethostbyname(argv[1]);
@@ -37,20 +40,45 @@ int sockfd, portNumber, n;
     serverAddress.sin_port = htons(portNumber);
 	if (connect(sockfd,(struct sockaddr *)&serverAddress,sizeof(serverAddress)) < 0) 
         perror("Client error: Connecting problem - connect()\n");
-	
-	
-	// Sending a message
-	printf("Please enter the message: ");
-    bzero(buffer,256);
-    fgets(buffer,255,stdin);
-    n = write(sockfd,buffer,strlen(buffer));
-	if (n < 0) perror("Client error: Writing to socket - write()\n");
-	
-	// Waiting for response
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    if (n < 0) perror("Client error: Reading from socket - read()\n");
-    printf("%s\n",buffer);
+	else printf("Connected!\n");
 
+		
+			printf("\e[1;1H\e[2J");
+            while(1)
+            {
+                printf("All the time I will waiting for Your command!\n");
+                printf("\t1.\tWrite a message\n");
+                printf("\t2.\tShow directory\n");
+                printf("\t3.\tGet a file\n");
+                printf("\n\t9.\tQuit\n");
+				x = getchar();
+                printf("\e[1;1H\e[2J");
+                switch(x)
+                {
+					case '1': 
+						// Clean buffer
+						fseek(stdin, 0, SEEK_END);
+						// Sending a message
+						printf("Please enter the message: ");
+						bzero(buffer,256);
+						fgets(buffer,255,stdin);
+						n = write(sockfd,buffer,strlen(buffer));
+						if (n < 0) perror("Client error: Writing to socket - write()\n");
+						
+						// Waiting for response
+						bzero(buffer,256);
+						n = read(sockfd,buffer,255);
+						if (n < 0) perror("Client error: Reading from socket - read()\n");
+						printf("%s\n",buffer);
+
+             		    getchar();
+						
+                        break;
+                    
+                    default:
+                        printf("Unknown command");
+                        break;
+                }     
+        }
     return 1;
 }   
